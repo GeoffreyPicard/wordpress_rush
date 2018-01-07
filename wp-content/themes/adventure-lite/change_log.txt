@@ -1,0 +1,21 @@
+Version 1.6
+i)  Added Full Width Page Template.
+ii) Added Following Page Builder Compatability: Elementor, Visual Composer, Live Composer, Beaver Builder
+
+Version 1.5
+i)  Changed description and removed holiday tag.
+
+Version 1.4
+i)   Reviewer Pointed All Issue Resolve.
+
+Version 1.3
+i)   Changes Done As Per Reviewer Comments.
+
+Version 1.2
+i)   Changes Done As Reviewer Pointed.
+
+Version 1.1
+i)   Changes Done As Per Reviewer Comments.
+
+Version 1.0
+i)   Intial version Release
