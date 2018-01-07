@@ -30,9 +30,9 @@ foreach ( $comments as $comment )
 		<h3 class="section-title"><?php printf($comment_count > 1 ? __('<span>%d</span> Commentaires', 'wpbx') : __('<span>Un</span> Commentaire', 'wpbx'), $comment_count) ?></h3>
 
 		<ul>
-<?php wp_list_comments('type=comment&callback=wpbx_comment'); ?>
-
-
+			<div class="comment list">
+    		<?php wp_list_comments( array( 'style' => 'div' ) ); ?>
+			</div>
 		</ul>
 
 		<div id="nav-comm" class="navigation clearfix">

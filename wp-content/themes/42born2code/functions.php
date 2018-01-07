@@ -119,29 +119,48 @@ function wpm_custom_post_type() {
 	// On peut définir ici d'autres options pour notre custom post type
 	
 	$args = array(
-		'label'               => __( 'Séries TV'),
-		'description'         => __( 'Tous sur séries TV'),
+		//'label'               => __( 'Room'),
+		//'description'         => __( 'Tous sur séries TV'),
 		'labels'              => $labels,
 		// On définit les options disponibles dans l'éditeur de notre custom post type ( un titre, un auteur...)
 		'supports'            => array( 'title', 'editor', 'excerpt', 'author', 'thumbnail', 'comments', 'revisions', 'custom-fields', ),
 		/* 
 		* Différentes options supplémentaires
 		*/	
-		'hierarchical'        => false,
+		//'hierarchical'        => false,
 		'public'              => true,
 		'has_archive'         => true,
-		'rewrite'			  => array( 'slug' => 'series-tv'),
+		//'rewrite'			  => array( 'slug' => 'Room'),
 
 	);
 	
 	// On enregistre notre custom post type qu'on nomme ici "serietv" et ses arguments
 	register_post_type( 'seriestv', $args );
+	register_taxonomy(
+	'location',
+	'seriestv',
+	array(
+		'label' => 'Location',
+		'labels' => array(
+			'name' => 'Location',
+			'singular_name' => 'Location',
+			'all_items' => 'Tous les Location',
+			'edit_item' => 'Éditer le Location',
+			'view_item' => 'Voir le Location',
+			'update_item' => 'Mettre à jour le Location',
+			'add_new_item' => 'Ajouter un Location',
+			'new_item_name' => 'Nouveau Location',
+			'search_items' => 'Rechercher parmi les Location',
+			'popular_items' => 'Location les plus utilisés'
+			),
+		'hierarchical' => true
+		)
+	);
+	
+	register_taxonomy_for_object_type( 'location', 'seriestv' );
 
 }
-
 //
-
-
 
 // Widgets plugin: intializes the plugin after the widgets above have passed snuff
 function wpbx_widgets_init() {
@@ -179,9 +198,114 @@ function add_login_logout_link($items, $args) {
        return $items;
 }
 
+// add meta box
+
+function initialisation_metaboxes(){
+  //on utilise la fonction add_metabox() pour initialiser une metabox
+  add_meta_box('id_prix', 'Prix par nuit', 'ft_prix_par_nuit', 'seriestv', 'side', 'high');
+  add_meta_box('id_property', 'Type de propriete', 'ft_property', 'seriestv', 'side', 'high');
+  // add_meta_box('id_equipement', 'Equipements', 'ft_equipement', 'seriestv', 'side', 'high');
+  add_meta_box('conditionnement_vin', 'Conditionnements disponnibles pour ce vin', 'conditionnement_vin', 'seriestv', 'side', 'high');
+}
+function ft_property($post)
+{
+	$dispo = get_post_meta($post->ID,'_dispo_produit',true);
+	echo '<label for="dispo_meta">Type de propriété :</label>';
+	echo '<select name="dispo_produit">';
+	echo '<option ' . selected( 'Maison', $dispo, false ) . ' value="Maison">Maison</option>';
+	echo '<option ' . selected( 'Appartement', $dispo, false ) . ' value="Appartement">Appartement</option>';
+	echo '</select>';
+}
+
+// build meta box, and get meta
+function ft_prix_par_nuit($post){
+  // on récupère la valeur actuelle pour la mettre dans le champ
+  $val = get_post_meta($post->ID,'valeur_prix',true);
+  echo '<label for="price">Prix par nuit : </label>';
+  echo '<input id="price" type="number" name="price" value="'.$val.'" />';
+}
+
+function check($cible,$test){
+  if(in_array($test,$cible)){return ' checked="checked" ';}
+}
+function conditionnement_vin($post){
+  $cond = get_post_meta($post->ID,'_conditionnement_vin',false);
+  echo 'Equipements :</br>';
+  echo '<label><input type="checkbox" ' . check( $cond, 5 ) . ' name="cond[]" value="5" />Cuisine</label></br>';
+  echo '<label><input type="checkbox" ' . check( $cond, 35 ) . ' name="cond[]" value="35" />Chauffage</label></br>';
+  echo '<label><input type="checkbox" ' . check( $cond, 37 ) . ' name="cond[]" value="37" />Internet</label></br>';
+}
+
+// save meta box with update
+
+function save_metaboxes($post_ID){
+  // si la metabox est définie, on sauvegarde sa valeur
+  if(isset($_POST['price'])){
+    update_post_meta($post_ID,'valeur_prix', esc_html($_POST['price']));
+  }
+  if(isset($_POST['dispo_produit'])){
+    update_post_meta($post_ID,'_dispo_produit', esc_html($_POST['dispo_produit']));
+  }
+  if(isset($_POST['cond'])){
+    // je supprime toutes les entrées pour cette meta
+    delete_post_meta($post_ID, '_conditionnement_vin');
+    // et pour chaque conditionnement coché, j'ajoute une metadonnée
+    foreach($_POST['cond'] as $c){
+      add_post_meta($post_ID, '_conditionnement_vin', intval($c) );
+    }
+  }
+}
+
+//
+
+// add_action( 'init', 'register_cpt_produit' );
+
+// function register_cpt_produit() {
+
+//     $labels = array( 
+//         'name' => _x( 'Location', 'location' ),
+//         'singular_name' => _x( 'location', 'location' ),
+//         'add_new' => _x( 'Ajouter', 'location' ),
+//         'add_new_item' => _x( 'Ajouter un location', 'location' ),
+//         'edit_item' => _x( 'Editer un location', 'location' ),
+//         'new_item' => _x( 'Nouveau location', 'location' ),
+//         'view_item' => _x( 'Voir le location', 'location' ),
+//         'search_items' => _x( 'Rechercher un location', 'location' ),
+//         'not_found' => _x( 'Aucun location trouvé', 'location' ),
+//         'not_found_in_trash' => _x( 'Aucun location dans la corbeille', 'location' ),
+//         'parent_item_colon' => _x( 'location parent :', 'location' ),
+//         'menu_name' => _x( 'locations', 'location' ),
+//     );
+
+//     $args = array( 
+//         'labels' => $labels,
+//         'hierarchical' => false,
+//         'description' => 'Location',
+//         'supports' => array( 'title', 'editor', 'thumbnail', 'custom-fields', 'revisions' ),
+//         'taxonomies' => array( 'category', 'post_tag' ),
+//         'public' => true,
+//         'show_ui' => true,
+//         'show_in_menu' => true,
+//         'menu_position' => 5,
+
+//         'show_in_nav_menus' => true,
+//         'publicly_queryable' => true,
+//         'exclude_from_search' => false,
+//         'has_archive' => true,
+//         'query_var' => true,
+//         'can_export' => true,
+//         'rewrite' => true,
+//         'capability_type' => 'post'
+//     );
+
+//     register_post_type( 'produit', $args );
+// }
+
 // Runs our code at the end to check that everything needed has loaded
 add_action( 'init', 'wpbx_widgets_init' );
 add_action( 'init', 'wpm_custom_post_type', 0 );
+add_action('add_meta_boxes','initialisation_metaboxes');
+add_action('save_post','save_metaboxes');
 
 // Adds filters for the description/meta content
 add_filter( 'archive_meta', 'wptexturize' );
@@ -189,6 +313,7 @@ add_filter( 'archive_meta', 'convert_smilies' );
 add_filter( 'archive_meta', 'convert_chars' );
 add_filter( 'archive_meta', 'wpautop' );
 add_filter('wp_nav_menu_items', 'add_login_logout_link', 10, 2);
+
 // Translate, if applicable
 load_theme_textdomain('wpbx');
 
